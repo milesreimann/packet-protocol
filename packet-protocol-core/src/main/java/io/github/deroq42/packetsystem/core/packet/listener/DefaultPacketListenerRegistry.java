@@ -23,6 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Log4j2
 @RequiredArgsConstructor
 public class DefaultPacketListenerRegistry implements PacketListenerRegistry {
+    @SuppressWarnings("rawtypes")
     private final @NotNull Map<Class<? extends Packet>, Collection<PacketListener>> packetClassToListenersMap = new ConcurrentHashMap<>();
 
     @Override
@@ -37,6 +38,7 @@ public class DefaultPacketListenerRegistry implements PacketListenerRegistry {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <P extends Packet> void unregisterPacketListener(
         @NotNull Class<P> packetClass,
         @NotNull PacketListener<P> listener
@@ -64,6 +66,7 @@ public class DefaultPacketListenerRegistry implements PacketListenerRegistry {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public @NotNull <P extends Packet> Collection<PacketListener> getPacketListeners(@NotNull Class<P> packetClass) {
         Collection<PacketListener> listeners = packetClassToListenersMap.get(packetClass);
         if (listeners == null || listeners.isEmpty()) {
@@ -73,6 +76,7 @@ public class DefaultPacketListenerRegistry implements PacketListenerRegistry {
         return Collections.unmodifiableCollection(listeners);
     }
 
+    @SuppressWarnings("rawtypes")
     private <P extends Packet> void addPacketListenerToRegistry(
         @NotNull Class<P> packetClass,
         @NotNull PacketListener listener
@@ -84,6 +88,7 @@ public class DefaultPacketListenerRegistry implements PacketListenerRegistry {
         log.info("Registered packet listener: {}", listener.getClass());
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private <P extends Packet> Optional<Class<P>> determinePacketClassFromListener(@NotNull Class<? extends PacketListener> listenerClass) {
         log.debug("Determining packet class from listener class '{}'", listenerClass.getName());
 
