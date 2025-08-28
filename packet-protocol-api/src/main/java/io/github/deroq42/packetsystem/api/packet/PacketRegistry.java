@@ -17,7 +17,7 @@ public interface PacketRegistry {
 
     <P extends Packet> void unregisterPacket(@NotNull Class<P> packetClass);
 
-    Optional<Class<? extends Packet>> getPacketClassById(int id);
+    Optional<Class<? extends Packet>> getPacketClassById(int packetId);
 
     <P extends Packet> Optional<Integer> getPacketIdByClass(@NotNull Class<P> packetClass);
 }

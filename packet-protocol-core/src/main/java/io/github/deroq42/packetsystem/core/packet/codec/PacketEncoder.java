@@ -3,6 +3,7 @@ package io.github.deroq42.packetsystem.core.packet.codec;
 import io.github.deroq42.packetsystem.api.packet.Packet;
 import io.github.deroq42.packetsystem.api.packet.codec.PacketFieldCodec;
 import io.github.deroq42.packetsystem.common.packet.codec.PacketFieldCodecs;
+import io.github.deroq42.packetsystem.core.connection.AbstractConnection;
 import io.github.deroq42.packetsystem.core.exception.PacketEncodeException;
 import io.github.deroq42.packetsystem.core.packet.util.Reflections;
 import io.netty.buffer.ByteBuf;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Log4j2
 public class PacketEncoder {
+    private final @NotNull AbstractConnection connection;
     private final @NotNull PacketFieldRegistry packetFieldRegistry;
 
     public void encode(@NotNull Packet packet, @NotNull ByteBuf byteBuf) {
@@ -53,7 +55,8 @@ public class PacketEncoder {
         @NotNull Class<? extends Packet> packetClass,
         @NotNull ByteBuf byteBuf
     ) {
-        int packetId = getNumericPacketId(packetClass);
+        int packetId = connection.getPacketRegistry().getPacketIdByClassOrThrow(packetClass);
+
         PacketFieldCodecs.INTEGER_CODEC.encode(packetId, byteBuf);
         log.trace("Encoded packet ID {} for packet '{}'", packetId, packet.getUniqueId());
 

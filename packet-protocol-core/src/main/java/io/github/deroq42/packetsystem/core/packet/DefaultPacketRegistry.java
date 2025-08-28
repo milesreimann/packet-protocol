@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,13 +63,21 @@ public class DefaultPacketRegistry implements PacketRegistry {
     }
 
     @Override
-    public Optional<Class<? extends Packet>> getPacketClassById(int id) {
-        return Optional.ofNullable(packetIdToClassMap.get(id));
+    public Optional<Class<? extends Packet>> getPacketClassById(int packetId) {
+        return Optional.ofNullable(packetIdToClassMap.get(packetId));
+    }
+
+    public @NotNull Class<? extends Packet> getPacketClassByIdOrThrow(int packetId) {
+        return getPacketClassById(packetId).orElseThrow(() -> new NoSuchElementException("Packet class of ID '" + packetId + "' was not found"));
     }
 
     @Override
     public <P extends Packet> Optional<Integer> getPacketIdByClass(@NotNull Class<P> packetClass) {
         return Optional.ofNullable(packetClassToIdMap.get(packetClass));
+    }
+
+    public @NotNull <P extends Packet> Integer getPacketIdByClassOrThrow(@NotNull Class<P> packetClass) {
+        return getPacketIdByClass(packetClass).orElseThrow(() -> new NoSuchElementException("Packet ID of class '" + packetClass + "' was not found"));
     }
 
     private <P extends Packet> void addPacketToRegistry(int packetId, @NotNull Class<P> packetClass) {

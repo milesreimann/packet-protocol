@@ -3,6 +3,7 @@ package io.github.deroq42.packetsystem.core.packet.codec;
 import io.github.deroq42.packetsystem.api.packet.Packet;
 import io.github.deroq42.packetsystem.api.packet.codec.PacketFieldCodec;
 import io.github.deroq42.packetsystem.common.packet.codec.PacketFieldCodecs;
+import io.github.deroq42.packetsystem.core.connection.AbstractConnection;
 import io.github.deroq42.packetsystem.core.exception.PacketDecodeException;
 import io.github.deroq42.packetsystem.core.packet.codec.model.PacketHeader;
 import io.github.deroq42.packetsystem.core.packet.util.Reflections;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Log4j2
 public class PacketDecoder {
+    private final @NotNull AbstractConnection connection;
     private final @NotNull PacketFieldRegistry packetFieldRegistry;
 
     public @NotNull Packet decode(@NotNull ByteBuf byteBuf) {
@@ -34,7 +36,7 @@ public class PacketDecoder {
             PacketHeader header = decodePacketHeader(byteBuf);
             log.trace("Decoded packet header: ID={}, UID={}", header.packetId(), header.uniqueId());
 
-            Class<? extends Packet> packetClass = getPacketClass(header.packetId());
+            Class<? extends Packet> packetClass = connection.getPacketRegistry().getPacketClassByIdOrThrow(header.packetId());
             Packet packet = createPacketInstance(packetClass, header.uniqueId());
 
             log.debug("Decoding packet fields for '{}'", packetClass.getSimpleName());
@@ -73,6 +75,13 @@ public class PacketDecoder {
 
             Reflections.writeField(fieldMetadata.field(), packet, value);
         });
+    }
+
+    private @NotNull Packet createPacketInstance(@NotNull Class<? extends Packet> packetClass, @NotNull UUID uniqueId) {
+        Packet packet = connection.getPacketFactory().create(packetClass);
+        packet.setUniqueId(uniqueId);
+
+        return packet;
     }
 
     private void logDecodingSuccess(@NotNull Packet packet, int bytesRead) {
