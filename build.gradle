@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
 }
 
 group = 'io.github.deroq42'
@@ -9,11 +11,25 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-}
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
-test {
-    useJUnitPlatform()
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.38'
+        annotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+        compileOnly 'org.jetbrains:annotations:26.0.2'
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs += ['-parameters']
+    }
 }

@@ -1,20 +1,13 @@
 [libraries]
 guava = { module = 'com.google.guava:guava', version = '33.0.0-jre' }
-jetbrains-annotations = { module = 'org.jetbrains:annotations', version = '26.0.2' }
 log4j2-api = { module = 'org.apache.logging.log4j:log4j-api', version = '2.25.1' }
 log4j2-core = { module = 'org.apache.logging.log4j:log4j-core', version = '2.25.1' }
-lombok = { module = 'org.projectlombok:lombok', version = '1.18.38' }
 netty-buffer = { module = 'io.netty:netty-buffer', version = '4.2.4.Final' }
 netty-all = { module = 'io.netty:netty-all', version = '4.2.4.Final' }
 
 [bundles]
 api = [
-    'jetbrains-annotations',
     'netty-buffer'
-]
-
-common = [
-    'lombok'
 ]
 
 core = [

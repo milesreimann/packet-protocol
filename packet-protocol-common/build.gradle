@@ -12,5 +12,4 @@ repositories {
 dependencies {
     compileOnly project(':packet-protocol-api')
     compileOnly libs.bundles.api
-    compileOnly libs.bundles.common
 }
