@@ -5,7 +5,7 @@ import io.github.deroq42.packetsystem.api.packet.codec.PacketFieldCodec;
 import io.github.deroq42.packetsystem.common.packet.codec.PacketFieldCodecs;
 import io.github.deroq42.packetsystem.core.exception.PacketDecodeException;
 import io.github.deroq42.packetsystem.core.packet.codec.model.PacketHeader;
-import io.github.deroq42.packetsystem.core.packet.util.PacketCodecReflections;
+import io.github.deroq42.packetsystem.core.packet.util.Reflections;
 import io.netty.buffer.ByteBuf;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -71,7 +71,7 @@ public class PacketDecoder {
             PacketFieldCodec<?> fieldCodec = packetFieldRegistry.getFieldCodec(fieldMetadata.codecClass(), packetClass);
             Object value = fieldCodec.decode(byteBuf);
 
-            PacketCodecReflections.writeField(fieldMetadata.field(), packet, value);
+            Reflections.writeField(fieldMetadata.field(), packet, value);
         });
     }
 

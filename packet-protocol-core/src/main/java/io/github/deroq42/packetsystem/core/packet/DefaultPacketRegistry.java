@@ -2,6 +2,7 @@ package io.github.deroq42.packetsystem.core.packet;
 
 import io.github.deroq42.packetsystem.api.packet.Packet;
 import io.github.deroq42.packetsystem.api.packet.PacketRegistry;
+import io.github.deroq42.packetsystem.core.packet.util.SimplePacketIdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +31,8 @@ public class DefaultPacketRegistry implements PacketRegistry {
             return;
         }
 
-        log.debug("Starting registration process for packet '{}'", packetClass.getName());
-        int packetId = determinePacketId(packetClass);
+        log.info("Registering packet '{}'", packetClass.getName());
+        int packetId = SimplePacketIdGenerator.generatePacketId(packetClass.getSimpleName(), packetIdToClassMap);
 
         addPacketToRegistry(packetId, packetClass);
     }
@@ -79,16 +80,7 @@ public class DefaultPacketRegistry implements PacketRegistry {
         packetClassToIdMap.put(packetClass, packetId);
         packetIdToClassMap.put(packetId, packetClass);
 
-        log.info("Registered packet '{}' with ID {}", packetClass.getName(), packetId);
-    }
-
-    private @NotNull Integer determinePacketId(@NotNull Class<? extends Packet> packetClass) {
-        log.debug("Determining packet ID for '{}'", packetClass.getName());
-
-        return PacketIdReader.read(packetClass).orElseGet(() -> {
-            log.error("Failed to read packet ID from class '{}'. Using hashCode of the packets class name as ID", packetClass.getName());
-            return packetClass.getSimpleName().hashCode();
-        });
+        log.info("Successfully registered packet '{}' with ID {}", packetClass.getName(), packetId);
     }
 
     private void logCollisionDetected(int packetId, @NotNull Class<?> packetClass) {

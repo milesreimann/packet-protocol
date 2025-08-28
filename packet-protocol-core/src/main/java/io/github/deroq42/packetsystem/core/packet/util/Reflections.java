@@ -17,7 +17,7 @@ import java.util.WeakHashMap;
  * @since 28.08.25
  */
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
-public class PacketCodecReflections {
+public class Reflections {
     private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
     private static final Map<Field, MethodHandle> FIELD_GETTERS = Collections.synchronizedMap(new WeakHashMap<>());
