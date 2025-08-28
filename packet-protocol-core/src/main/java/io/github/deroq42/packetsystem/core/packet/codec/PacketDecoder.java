@@ -46,6 +46,7 @@ public class PacketDecoder {
             return packet;
         } catch (Exception e) {
             log.error("Failed to decode packet at buffer index {}", initialReaderIndex, e);
+            byteBuf.readerIndex(initialReaderIndex);
             throw new PacketDecodeException(e);
         }
     }
