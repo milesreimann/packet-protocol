@@ -73,8 +73,8 @@ public abstract class AbstractConnection implements Connection {
         this.packetRegistry = new DefaultPacketRegistry(new PacketScanner());
 
         PacketFieldRegistry packetFieldRegistry = new PacketFieldRegistry();
-        PacketEncoder packetEncoder = new PacketEncoder(packetFieldRegistry);
-        PacketDecoder packetDecoder = new PacketDecoder(packetFieldRegistry);
+        PacketEncoder packetEncoder = new PacketEncoder(this, packetFieldRegistry);
+        PacketDecoder packetDecoder = new PacketDecoder(this, packetFieldRegistry);
 
         this.packetCodec = new DefaultPacketCodec(packetEncoder, packetDecoder, packetFieldRegistry);
         this.packetBacklog = new PacketBacklog(this);
