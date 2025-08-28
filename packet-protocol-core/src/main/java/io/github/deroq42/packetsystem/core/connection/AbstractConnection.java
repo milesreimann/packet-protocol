@@ -2,10 +2,23 @@ package io.github.deroq42.packetsystem.core.connection;
 
 import io.github.deroq42.packetsystem.api.connection.Connection;
 import io.github.deroq42.packetsystem.api.packet.Packet;
+import io.github.deroq42.packetsystem.common.packet.codec.PacketFieldCodecs;
+import io.github.deroq42.packetsystem.core.connection.model.ConnectionType;
+import io.github.deroq42.packetsystem.core.packet.DefaultPacketRegistry;
+import io.github.deroq42.packetsystem.core.packet.PacketBacklog;
+import io.github.deroq42.packetsystem.core.packet.PacketFactory;
+import io.github.deroq42.packetsystem.core.packet.PacketScanner;
+import io.github.deroq42.packetsystem.core.packet.codec.DefaultPacketCodec;
+import io.github.deroq42.packetsystem.core.packet.codec.PacketDecoder;
+import io.github.deroq42.packetsystem.core.packet.codec.PacketEncoder;
+import io.github.deroq42.packetsystem.core.packet.codec.PacketFieldRegistry;
+import io.github.deroq42.packetsystem.core.packet.listener.DefaultPacketListenerRegistry;
+import io.github.deroq42.packetsystem.core.pipeline.ConnectionHandler;
 import io.netty.channel.ChannelFuture;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +30,8 @@ import java.util.function.Consumer;
  * @since 28.08.25
  */
 public abstract class AbstractConnection implements Connection {
+    @Getter
+    private final @NotNull ConnectionType connectionType;
     @Getter
     private final @NotNull String host;
     @Getter
@@ -42,19 +57,26 @@ public abstract class AbstractConnection implements Connection {
     @Setter(value = AccessLevel.PROTECTED)
     private @Nullable ChannelFuture channelFuture;
 
-    public AbstractConnection(
+    protected AbstractConnection(
+        @NotNull ConnectionType connectionType,
         @NotNull String host,
         int port,
         @Nullable Consumer<Void> connectCallback,
         @Nullable Consumer<Void> disconnectCallback
     ) {
+        this.connectionType = connectionType;
         this.host = host;
         this.port = port;
         this.connectCallback = connectCallback;
         this.disconnectCallback = disconnectCallback;
         this.packetFactory = new PacketFactory();
-        this.packetRegistry = new DefaultPacketRegistry();
-        this.packetCodec = new DefaultPacketCodec(this);
+        this.packetRegistry = new DefaultPacketRegistry(new PacketScanner());
+
+        PacketFieldRegistry packetFieldRegistry = new PacketFieldRegistry();
+        PacketEncoder packetEncoder = new PacketEncoder(packetFieldRegistry);
+        PacketDecoder packetDecoder = new PacketDecoder(packetFieldRegistry);
+
+        this.packetCodec = new DefaultPacketCodec(packetEncoder, packetDecoder, packetFieldRegistry);
         this.packetBacklog = new PacketBacklog(this);
         this.packetListenerRegistry = new DefaultPacketListenerRegistry();
         this.connectionHandler = new ConnectionHandler(this, _ -> packetBacklog.flush());
@@ -67,7 +89,7 @@ public abstract class AbstractConnection implements Connection {
         Runtime.getRuntime().addShutdownHook(new Thread(this::forceClose, "connection-cleanup"));
     }
 
-    public AbstractConnection(@NotNull ConnectionType connectionType, @NotNull String host, int port) {
+    protected AbstractConnection(@NotNull ConnectionType connectionType, @NotNull String host, int port) {
         this(connectionType, host, port, null, null);
     }
 
@@ -83,19 +105,6 @@ public abstract class AbstractConnection implements Connection {
         }
 
         forceClose();
-    }
-
-    private void forceClose() {
-        try {
-            if (channelFuture != null && channelFuture.channel().isOpen()) {
-                channelFuture.channel().close().sync();
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            cleanUp();
-            handleClosedConnection();
-        }
     }
 
     @Override
@@ -114,17 +123,8 @@ public abstract class AbstractConnection implements Connection {
         return connected.get();
     }
 
-    protected void handleClosedConnection() {
-        if (channelFuture == null) {
-            return;
-        }
-
-        callDisconnectCallback();
-        packetBacklog.clear();
-        setChannelFuture(null);
-        setConnected(false);
-
-        getLogger().info("{} closed successfully", connectionType.getDisplayName());
+    protected void setConnected(boolean b) {
+        connected.set(b);
     }
 
     protected void waitForClose() throws InterruptedException {
@@ -137,10 +137,6 @@ public abstract class AbstractConnection implements Connection {
         handleClosedConnection();
     }
 
-    protected void setConnected(boolean b) {
-        connected.set(b);
-    }
-
     protected void callConnectCallback() {
         if (connectCallback != null) {
             connectCallback.accept(null);
@@ -151,5 +147,31 @@ public abstract class AbstractConnection implements Connection {
         if (disconnectCallback != null) {
             disconnectCallback.accept(null);
         }
+    }
+
+    private void forceClose() {
+        try {
+            if (channelFuture != null && channelFuture.channel().isOpen()) {
+                channelFuture.channel().close().sync();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            cleanUp();
+            handleClosedConnection();
+        }
+    }
+
+    private void handleClosedConnection() {
+        if (channelFuture == null) {
+            return;
+        }
+
+        callDisconnectCallback();
+        packetBacklog.clear();
+        setChannelFuture(null);
+        setConnected(false);
+
+        getLogger().info("{} closed successfully", connectionType.getDisplayName());
     }
 }
