@@ -24,7 +24,7 @@ public class PacketDecoder {
     private final @NotNull AbstractConnection connection;
     private final @NotNull PacketFieldRegistry packetFieldRegistry;
 
-    public @NotNull Packet decode(@NotNull ByteBuf byteBuf) {
+    public @NotNull Packet decode(@NotNull ByteBuf byteBuf) throws PacketDecodeException {
         if (!byteBuf.isReadable()) {
             throw new PacketDecodeException("ByteBuf is not readable");
         }
@@ -50,7 +50,7 @@ public class PacketDecoder {
         }
     }
 
-    private @NotNull PacketHeader decodePacketHeader(@NotNull ByteBuf byteBuf) {
+    private @NotNull PacketHeader decodePacketHeader(@NotNull ByteBuf byteBuf) throws PacketDecodeException {
         Integer packetId = PacketFieldCodecs.INTEGER_CODEC.decode(byteBuf);
         if (packetId == null) {
             throw new PacketDecodeException("Decoded packetId is null");

@@ -11,4 +11,8 @@ public class PacketEncodeException extends RuntimeException {
     public PacketEncodeException(@NotNull Packet packet, @NotNull Exception e) {
         super("Failed to encode packet '" + packet.getUniqueId() + "'", e);
     }
+
+    public PacketEncodeException(@NotNull Packet packet, @NotNull String message) {
+        super("Failed to encode packet '" + packet.getUniqueId() + "': " + message);
+    }
 }

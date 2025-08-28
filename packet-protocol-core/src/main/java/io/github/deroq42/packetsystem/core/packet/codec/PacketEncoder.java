@@ -25,11 +25,11 @@ public class PacketEncoder {
 
     public void encode(@NotNull Packet packet, @NotNull ByteBuf byteBuf) {
         if (packet.getUniqueId() == null) {
-            throw new IllegalArgumentException("Packet unique ID cannot be null");
+            throw new PacketEncodeException(packet, "Packet unique ID cannot be null");
         }
 
         if (!byteBuf.isWritable()) {
-            throw new IllegalArgumentException("ByteBuf is not writable");
+            throw new PacketEncodeException(packet, "ByteBuf is not writable");
         }
 
         Class<? extends Packet> packetClass = packet.getClass();

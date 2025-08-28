@@ -42,7 +42,6 @@ public class ServerConnection extends AbstractConnection {
 
     @Override
     public void open() {
-        // TODO: SSL
         this.bossGroup = NettyUtils.getAvailableEventLoopGroup();
         this.workerGroup = NettyUtils.getAvailableEventLoopGroup();
 

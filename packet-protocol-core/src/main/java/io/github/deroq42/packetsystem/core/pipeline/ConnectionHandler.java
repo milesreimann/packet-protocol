@@ -41,6 +41,7 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<Packet> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) {
         connection.getPacketListenerRegistry().getPacketListeners(packet.getClass()).forEach(listener -> listener.handle(packet, connection));
     }

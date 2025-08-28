@@ -40,7 +40,6 @@ public class ClientConnection extends AbstractConnection {
 
     @Override
     public void open() {
-        // TODO: SSL
         this.workerGroup = NettyUtils.getAvailableEventLoopGroup();
 
         Bootstrap bootstrap = new Bootstrap()
