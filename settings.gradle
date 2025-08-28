@@ -1,2 +1,4 @@
 rootProject.name = 'packet-protocol'
 include 'packet-protocol-api'
+include 'packet-protocol-core'
+include 'packet-protocol-common'

@@ -9,6 +9,8 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/packet-protocol-api" />
+            <option value="$PROJECT_DIR$/packet-protocol-common" />
+            <option value="$PROJECT_DIR$/packet-protocol-core" />
           </set>
         </option>
       </GradleProjectSettings>

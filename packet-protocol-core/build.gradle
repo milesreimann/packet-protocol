@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.deroq42'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly project(':packet-protocol-api')
+    compileOnly project(':packet-protocol-common')
+
+    implementation libs.bundles.api
+    implementation libs.bundles.common
+    implementation libs.bundles.core
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
