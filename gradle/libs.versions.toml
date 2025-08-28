@@ -1,0 +1,9 @@
+[libraries]
+jetbrains-annotations = { module = 'org.jetbrains:annotations', version = '26.0.2' }
+netty-buffer = { module = 'io.netty:netty-buffer', version = '4.2.2.Final' }
+
+[bundles]
+api = [
+    'jetbrains-annotations',
+    'netty-buffer'
+]
