@@ -1,9 +1,19 @@
 [libraries]
 jetbrains-annotations = { module = 'org.jetbrains:annotations', version = '26.0.2' }
+lombok = { module = 'org.projectlombok:lombok', version = '1.18.38' }
 netty-buffer = { module = 'io.netty:netty-buffer', version = '4.2.2.Final' }
+netty-all = { module = 'io.netty:netty-all', version = '4.2.4.Final' }
 
 [bundles]
 api = [
     'jetbrains-annotations',
     'netty-buffer'
+]
+
+common = [
+    'lombok'
+]
+
+core = [
+    'netty-all'
 ]
