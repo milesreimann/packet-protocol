@@ -45,22 +45,28 @@ public class PacketScanner {
             ClassPath classPath = ClassPath.from(classLoader);
             ImmutableSet<ClassPath.ClassInfo> classes = extractor.apply(classPath);
 
-            for (ClassPath.ClassInfo classInfo : classes) {
-                try {
-                    Class<?> loadedClass = classInfo.load();
-                    if (Packet.class.isAssignableFrom(loadedClass)) {
-                        packetClasses.add((Class<? extends Packet>) loadedClass);
-                    } else {
-                        log.debug("Skipping class '{}' - does not implement Packet", loadedClass.getName());
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to load class '{}': {}", classInfo.getName(), e.getMessage());
-                }
-            }
+            classes.forEach(classInfo -> processClassInfo(classInfo, packetClasses));
         } catch (Exception e) {
             log.error("Failed to scan package '{}' for packet classes", packageName, e);
         }
 
         return packetClasses;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void processClassInfo(
+        @NotNull ClassPath.ClassInfo classInfo,
+        @NotNull Set<Class<? extends Packet>> packetClasses
+    ) {
+        try {
+            Class<?> loadedClass = classInfo.load();
+            if (Packet.class.isAssignableFrom(loadedClass)) {
+                packetClasses.add((Class<? extends Packet>) loadedClass);
+            } else {
+                log.debug("Skipping class '{}' - does not implement Packet", loadedClass.getName());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to load class '{}': {}", classInfo.getName(), e.getMessage());
+        }
     }
 }
