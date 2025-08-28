@@ -1,4 +1,4 @@
-package io.github.deroq42.packetsystem.core.packet;
+package io.github.deroq42.packetsystem.core.packet.registry;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;

@@ -2,7 +2,7 @@ package io.github.deroq42.packetsystem.api.connection;
 
 import io.github.deroq42.packetsystem.api.packet.Packet;
 import io.github.deroq42.packetsystem.api.packet.listener.PacketListenerRegistry;
-import io.github.deroq42.packetsystem.api.packet.PacketRegistry;
+import io.github.deroq42.packetsystem.api.packet.registry.PacketRegistry;
 import org.jetbrains.annotations.NotNull;
 
 /**

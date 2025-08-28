@@ -1,7 +1,7 @@
-package io.github.deroq42.packetsystem.core.packet;
+package io.github.deroq42.packetsystem.core.packet.registry;
 
 import io.github.deroq42.packetsystem.api.packet.Packet;
-import io.github.deroq42.packetsystem.api.packet.PacketRegistry;
+import io.github.deroq42.packetsystem.api.packet.registry.PacketRegistry;
 import io.github.deroq42.packetsystem.core.packet.util.SimplePacketIdGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

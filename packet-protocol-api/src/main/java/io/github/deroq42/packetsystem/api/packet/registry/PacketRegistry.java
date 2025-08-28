@@ -1,5 +1,6 @@
-package io.github.deroq42.packetsystem.api.packet;
+package io.github.deroq42.packetsystem.api.packet.registry;
 
+import io.github.deroq42.packetsystem.api.packet.Packet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;

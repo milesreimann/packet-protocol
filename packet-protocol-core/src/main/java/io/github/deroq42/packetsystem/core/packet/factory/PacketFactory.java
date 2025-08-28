@@ -1,4 +1,4 @@
-package io.github.deroq42.packetsystem.core.packet;
+package io.github.deroq42.packetsystem.core.packet.factory;
 
 import io.github.deroq42.packetsystem.api.packet.Packet;
 import io.github.deroq42.packetsystem.core.exception.PacketInstantiationException;

@@ -1,6 +1,5 @@
-package io.github.deroq42.packetsystem.api.packet;
+package io.github.deroq42.packetsystem.api.packet.codec;
 
-import io.github.deroq42.packetsystem.api.packet.codec.PacketFieldCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.ElementType;

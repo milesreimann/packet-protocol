@@ -1,7 +1,7 @@
 package io.github.deroq42.packetsystem.core.packet.codec;
 
 import io.github.deroq42.packetsystem.api.packet.Packet;
-import io.github.deroq42.packetsystem.api.packet.PacketField;
+import io.github.deroq42.packetsystem.api.packet.codec.PacketField;
 import io.github.deroq42.packetsystem.api.packet.codec.PacketFieldCodec;
 import io.github.deroq42.packetsystem.core.packet.codec.model.PacketFieldInfo;
 import lombok.extern.log4j.Log4j2;

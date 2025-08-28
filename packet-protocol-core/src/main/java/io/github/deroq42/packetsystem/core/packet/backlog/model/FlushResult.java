@@ -1,4 +1,4 @@
-package io.github.deroq42.packetsystem.core.packet.model;
+package io.github.deroq42.packetsystem.core.packet.backlog.model;
 
 /**
  * @author Miles

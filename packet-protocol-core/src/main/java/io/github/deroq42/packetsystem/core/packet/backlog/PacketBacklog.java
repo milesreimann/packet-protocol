@@ -1,8 +1,8 @@
-package io.github.deroq42.packetsystem.core.packet;
+package io.github.deroq42.packetsystem.core.packet.backlog;
 
 import io.github.deroq42.packetsystem.api.connection.Connection;
 import io.github.deroq42.packetsystem.api.packet.Packet;
-import io.github.deroq42.packetsystem.core.packet.model.FlushResult;
+import io.github.deroq42.packetsystem.core.packet.backlog.model.FlushResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
