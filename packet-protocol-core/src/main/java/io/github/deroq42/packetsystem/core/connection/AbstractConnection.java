@@ -154,7 +154,7 @@ public abstract class AbstractConnection implements Connection {
             if (channelFuture != null && channelFuture.channel().isOpen()) {
                 channelFuture.channel().close().sync();
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         } finally {
             cleanUp();

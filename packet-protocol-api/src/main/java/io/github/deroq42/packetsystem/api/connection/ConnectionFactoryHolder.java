@@ -1,5 +1,7 @@
 package io.github.deroq42.packetsystem.api.connection;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ServiceLoader;
@@ -9,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author Miles
  * @since 28.08.25
  */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ConnectionFactoryHolder {
     private static final AtomicReference<ConnectionFactory> INSTANCE = new AtomicReference<>();
 

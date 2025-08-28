@@ -62,7 +62,7 @@ public class PacketConstructorMatcher {
     ) {
         ConstructorKey key = new ConstructorKey(packetClass, params);
 
-        return (Constructor<P>) PARAM_CONSTRUCTOR_CACHE.computeIfAbsent(key, k -> {
+        return PARAM_CONSTRUCTOR_CACHE.computeIfAbsent(key, _ -> {
             String packetClassName = packetClass.getName();
 
             Constructor<?>[] constructors = packetClass.getDeclaredConstructors();
