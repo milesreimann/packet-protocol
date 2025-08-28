@@ -41,13 +41,13 @@ public class DefaultPacketRegistry implements PacketRegistry {
     @Override
     public void registerPackets(@NotNull String packageName) {
         log.debug("Registering packets from package '{}'", packageName);
-        packetScanner.scanPackage(packageName);
+        packetScanner.scanPackage(packageName).forEach(this::registerPacket);
     }
 
     @Override
     public void registerPacketsRecursive(@NotNull String packageName) {
         log.debug("Registering packets from package '{}' recursively", packageName);
-        packetScanner.scanPackageRecursive(packageName);
+        packetScanner.scanPackageRecursive(packageName).forEach(this::registerPacket);
     }
 
     @Override
