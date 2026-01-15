@@ -34,19 +34,14 @@ public class PacketConstructorMatcher {
     );
 
     private static final Map<Class<? extends Packet>, Constructor<? extends Packet>> NO_ARGS_CACHE = new ConcurrentHashMap<>();
-    private static final Map<ConstructorKey, Constructor<? extends Packet>> PARAM_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ConstructorKey, Constructor<? extends Packet>> PARAMETERIZED_CACHE = new ConcurrentHashMap<>();
 
-    public static <P extends Packet> Constructor<P> findNoArgsConstructor(Class<P> packetClass) throws PacketInstantiationException {
-        return (Constructor<P>) NO_ARGS_CACHE.computeIfAbsent(packetClass, cls -> {
-            try {
-                Constructor<?> c = cls.getDeclaredConstructor();
-                c.setAccessible(true);
-                log.trace("Cached no-args constructor for packet '{}'", cls.getName());
-                return (Constructor<? extends Packet>) c;
-            } catch (NoSuchMethodException e) {
-                throw new PacketInstantiationException("No no-args constructor found for packet " + cls.getName(), e);
-            }
-        });
+    @SuppressWarnings("unchecked")
+    public static <P extends Packet> Constructor<P> findNoArgsConstructor(Class<P> packetClass) {
+        return (Constructor<P>) NO_ARGS_CACHE.computeIfAbsent(
+            packetClass,
+            PacketConstructorMatcher::createNoArgsConstructor
+        );
     }
 
     @SuppressWarnings("unchecked")
@@ -56,46 +51,82 @@ public class PacketConstructorMatcher {
     ) {
         ConstructorKey key = new ConstructorKey(packetClass, params);
 
-        return PARAM_CONSTRUCTOR_CACHE.computeIfAbsent(key, _ -> {
-            String packetClassName = packetClass.getName();
+        return (Constructor<P>) PARAMETERIZED_CACHE.computeIfAbsent(
+            key,
+            _ -> findConstructorForParameters(packetClass, params)
+        );
+    }
 
-            Constructor<?>[] constructors = packetClass.getDeclaredConstructors();
-            log.debug("Found {} constructor(s) in class '{}'", constructors.length, packetClassName);
+    private static <P extends Packet> Constructor<? extends Packet> createNoArgsConstructor(
+        Class<P> packetClass
+    ) {
+        try {
+            Constructor<? extends Packet> constructor = packetClass.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            log.trace("Cached no-args constructor for packet '{}'", packetClass.getName());
 
-            for (Constructor<?> constructor : constructors) {
-                if (isExactMatch(constructor, params)) {
-                    log.debug("Found exact matching constructor for class '{}'", packetClassName);
-                    constructor.setAccessible(true);
-                    return constructor;
-                }
-            }
+            return constructor;
+        } catch (NoSuchMethodException e) {
+            throw new PacketInstantiationException(
+                "No no-args constructor found for packet " + packetClass.getName(),
+                e
+            );
+        }
+    }
 
-            Optional<Constructor<P>> assignableMatch = findAssignableConstructor(packetClass, constructors, params);
-            if (assignableMatch.isPresent()) {
-                Constructor<?> constructor = assignableMatch.get();
-                constructor.setAccessible(true);
-                return constructor;
-            }
+    private static <P extends Packet> Constructor<? extends Packet> findConstructorForParameters(
+        Class<P> packetClass,
+        Object... params
+    ) {
+        String packetClassName = packetClass.getName();
+        Constructor<?>[] constructors = packetClass.getDeclaredConstructors();
 
-            throwIfNoConstructorMatch(packetClassName, params);
-            return null;
-        });
+        log.debug(
+            "Searching {} constructor(s) in class '{}' for matching parameters",
+            constructors.length,
+            packetClassName
+        );
+
+        return findExactMatch(constructors, params)
+            .map(exactConstructor -> {
+                log.debug("Found exact matching constructor for class '{}'", packetClassName);
+                return makeAccessible(exactConstructor);
+            })
+            .orElseGet(() -> {
+                return findAssignableMatch(packetClass, constructors, params)
+                    .map(assignableConstructor -> makeAccessible(assignableConstructor))
+                    .orElseThrow(() -> createNoMatchException(packetClassName, params));
+            });
+    }
+
+    private static Optional<Constructor<?>> findExactMatch(
+        Constructor<?>[] constructors,
+        Object... params
+    ) {
+        return Arrays.stream(constructors)
+            .filter(constructor -> isExactMatch(constructor, params))
+            .findFirst();
     }
 
     @SuppressWarnings("unchecked")
-    private static <P extends Packet> Optional<Constructor<P>> findAssignableConstructor(
+    private static <P extends Packet> Optional<Constructor<P>> findAssignableMatch(
         Class<P> packetClass,
         Constructor<?>[] constructors,
         Object... params
     ) {
         for (int i = 0; i < constructors.length; i++) {
             Constructor<?> constructor = constructors[i];
-            if (constructor.getParameterCount() != params.length) {
+
+            if (!hasMatchingParameterCount(constructor, params)) {
                 continue;
             }
 
             if (isAssignableMatch(constructor, i, params)) {
-                log.debug("Found assignable matching constructor for class '{}' (constructor index {})", packetClass.getName(), i);
+                log.debug(
+                    "Found assignable matching constructor for class '{}' (constructor index {})",
+                    packetClass.getName(),
+                    i
+                );
                 return Optional.of((Constructor<P>) constructor);
             }
         }
@@ -103,22 +134,29 @@ public class PacketConstructorMatcher {
         return Optional.empty();
     }
 
+    private static boolean hasMatchingParameterCount(Constructor<?> constructor, Object... params) {
+        return constructor.getParameterCount() == params.length;
+    }
+
     private static boolean isExactMatch(Constructor<?> constructor, Object... params) {
-        if (constructor.getParameterCount() != params.length) {
+        if (!hasMatchingParameterCount(constructor, params)) {
             return false;
         }
 
         Class<?>[] expectedTypes = constructor.getParameterTypes();
-        for (int i = 0; i < params.length; i++) {
-            Object param = params[i];
-            Class<?> expectedType = expectedTypes[i];
 
-            if (!param.getClass().equals(expectedType) && !isDirectWrapperMatch(expectedType, param.getClass())) {
+        for (int i = 0; i < params.length; i++) {
+            if (!isExactTypeMatch(expectedTypes[i], params[i])) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static boolean isExactTypeMatch(Class<?> expectedType, Object param) {
+        Class<?> actualType = param.getClass();
+        return actualType.equals(expectedType) || isDirectWrapperMatch(expectedType, actualType);
     }
 
     private static boolean isAssignableMatch(
@@ -128,14 +166,8 @@ public class PacketConstructorMatcher {
     ) {
         Class<?>[] expectedTypes = constructor.getParameterTypes();
 
-        for (int paramIndex = 0; paramIndex < params.length; paramIndex++) {
-            Object param = params[paramIndex];
-            Class<?> expectedType = expectedTypes[paramIndex];
-
-            Class<?> actualType = param.getClass();
-            if (!isTypeAssignable(expectedType, actualType)) {
-                log.trace("Constructor {} parameter {} expects type '{}', but got '{}'",
-                    constructorIndex, paramIndex, expectedType.getName(), actualType.getName());
+        for (int i = 0; i < params.length; i++) {
+            if (!isParameterAssignable(expectedTypes[i], params[i], constructorIndex, i)) {
                 return false;
             }
         }
@@ -143,29 +175,59 @@ public class PacketConstructorMatcher {
         return true;
     }
 
-    private static boolean isTypeAssignable(Class<?> expectedType, Class<?> actualType) {
-        if (expectedType.isAssignableFrom(actualType)) {
+    private static boolean isParameterAssignable(
+        Class<?> expectedType,
+        Object param,
+        int constructorIndex,
+        int paramIndex
+    ) {
+        Class<?> actualType = param.getClass();
+
+        if (isTypeAssignable(expectedType, actualType)) {
             return true;
         }
 
-        return isDirectWrapperMatch(expectedType, actualType) || isDirectWrapperMatch(actualType, expectedType);
+        log.trace(
+            "Constructor {} parameter {} expects type '{}', but got '{}'",
+            constructorIndex,
+            paramIndex,
+            expectedType.getName(),
+            actualType.getName()
+        );
+
+        return false;
+    }
+
+    private static boolean isTypeAssignable(Class<?> expectedType, Class<?> actualType) {
+        return expectedType.isAssignableFrom(actualType)
+            || isDirectWrapperMatch(expectedType, actualType)
+            || isDirectWrapperMatch(actualType, expectedType);
     }
 
     private static boolean isDirectWrapperMatch(Class<?> primitive, Class<?> wrapper) {
         return PRIMITIVE_TO_WRAPPER.get(primitive) == wrapper;
     }
 
-    private static void throwIfNoConstructorMatch(String packetClassName, Object ... params)  {
-        String paramTypeNames = Arrays.stream(params)
-            .map(p -> p.getClass().getName())
-            .collect(Collectors.joining(", "));
+    private static Constructor<? extends Packet> makeAccessible(Constructor<?> constructor) {
+        constructor.setAccessible(true);
+        return (Constructor<? extends Packet>) constructor;
+    }
+
+    private static IllegalStateException createNoMatchException(String packetClassName, Object... params) {
+        String parameterTypes = formatParameterTypes(params);
 
         log.warn(
             "No matching constructor found for class '{}' with parameter types [{}]",
             packetClassName,
-            paramTypeNames
+            parameterTypes
         );
 
         throw new IllegalStateException("No constructor found with matching parameters for class " + packetClassName);
+    }
+
+    private static String formatParameterTypes(Object... params) {
+        return Arrays.stream(params)
+            .map(param -> param.getClass().getName())
+            .collect(Collectors.joining(", "));
     }
 }
