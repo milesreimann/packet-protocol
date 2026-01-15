@@ -40,3 +40,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+.idea/
+packet-protocol-api/build/
+packet-protocol-common/build/
+packet-protocol-core/build/
